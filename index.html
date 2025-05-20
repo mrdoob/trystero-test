@@ -17,7 +17,7 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js",
+        "three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js",
         "trystero": "https://esm.run/trystero@0.21.3"
       }
     }
@@ -26,8 +26,9 @@
 <body>
   <div id="shareContainer">
     <div id="shareInner">
-      <div id="shareMsg">Copied!</div>
       <a id="shareLink" title="Click to copy this room link"><span id="shareUrl"></span></a>
+      <div id="shareMsg">Copied!</div>
+      <a id="newRoomLink" title="Create a new room" style="display:block;margin-top:8px;color:#bada55;background:rgba(0,0,0,0.18);padding:6px 12px;border-radius:6px;text-decoration:none;font-size:15px;cursor:pointer;text-align:center;min-width:220px;" target="_blank" rel="noopener">New Room</a>
     </div>
   </div>
   <div id="ui">
@@ -39,12 +40,14 @@
     const shareLink = document.getElementById('shareLink');
     const shareUrl = document.getElementById('shareUrl');
     const shareMsg = document.getElementById('shareMsg');
+    const newRoomLink = document.getElementById('newRoomLink');
     function getRoomUrl() {
       return window.location.origin + window.location.pathname + window.location.hash;
     }
     function updateShareUrl() {
       shareUrl.textContent = getRoomUrl();
     }
+    window.updateShareUrl = updateShareUrl;
     updateShareUrl();
     shareLink.onclick = function(e) {
       e.preventDefault();
@@ -52,6 +55,11 @@
         shareMsg.style.display = 'block';
         setTimeout(() => { shareMsg.style.display = 'none'; }, 1200);
       });
+    };
+    newRoomLink.onclick = function(e) {
+      e.preventDefault();
+      const url = window.location.origin + window.location.pathname + '#' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2));
+      window.open(url, '_blank', 'noopener');
     };
     window.addEventListener('hashchange', updateShareUrl);
   </script>

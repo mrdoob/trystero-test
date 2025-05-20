@@ -37,6 +37,7 @@ function getOrCreateRoomId() {
     // Update URL (use hash)
     url.hash = '#' + roomId;
     window.history.replaceState({}, '', url);
+    if (window.updateShareUrl) window.updateShareUrl();
   }
   return roomId;
 }
@@ -159,7 +160,7 @@ function setupTrystero(roomName) {
     peers.push(peerId);
     if (myId === getHostId()) isHost = true;
     else isHost = false;
-    statusDiv.textContent = `Peers: ${peers.length}`;
+    statusDiv.textContent = `Friends: ${peers.length}`;
   });
   room.onPeerLeave(peerId => {
     peers = peers.filter(p => p !== peerId);
@@ -169,7 +170,7 @@ function setupTrystero(roomName) {
     if (sphere) scene.remove(sphere);
     if (myId === getHostId()) isHost = true;
     else isHost = false;
-    statusDiv.textContent = `Peers: ${peers.length}`;
+    statusDiv.textContent = `Friends: ${peers.length}`;
   });
 
   // Receive key events (host only)
@@ -283,7 +284,7 @@ function animate() {
 function startGame() {
   // Remove/join UI
   if (roomForm) roomForm.style.display = 'none';
-  if (statusDiv) statusDiv.textContent = 'Peers: 0';
+  if (statusDiv) statusDiv.textContent = 'Friends: 0';
   setupThree();
   const roomId = getOrCreateRoomId();
   setupTrystero(roomId);
