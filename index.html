@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiplayer Dune Sandbox</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #222; }
+    #ui { position: absolute; top: 10px; left: 10px; color: #fff; z-index: 10; }
+    #status { position: fixed; bottom: 20px; right: 24px; font-size: 16px; padding: 10px; text-align: right; background: rgba(0,0,0,0.18); border-radius: 8px; pointer-events: none; }
+    #shareContainer { position: fixed; top: 16px; left: 0; width: 100vw; display: flex; justify-content: center; align-items: flex-start; pointer-events: none; z-index: 20; }
+    #shareInner { pointer-events: auto; }
+    #shareLink { display: block; color: #fff; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 15px; cursor: pointer; user-select: all; text-align: center; min-width: 220px; }
+    #shareLink:active { background: #333; }
+    #shareMsg { font-size: 13px; color: #bada55; margin-bottom: 6px; display: none; text-align: center; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js",
+        "trystero": "https://esm.run/trystero@0.21.3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="shareContainer">
+    <div id="shareInner">
+      <div id="shareMsg">Copied!</div>
+      <a id="shareLink" title="Click to copy this room link"><span id="shareUrl"></span></a>
+    </div>
+  </div>
+  <div id="ui">
+    <div id="status"></div>
+  </div>
+  <script type="module" src="main.js"></script>
+  <script>
+    // Share link logic
+    const shareLink = document.getElementById('shareLink');
+    const shareUrl = document.getElementById('shareUrl');
+    const shareMsg = document.getElementById('shareMsg');
+    function getRoomUrl() {
+      return window.location.origin + window.location.pathname + window.location.hash;
+    }
+    function updateShareUrl() {
+      shareUrl.textContent = getRoomUrl();
+    }
+    updateShareUrl();
+    shareLink.onclick = function(e) {
+      e.preventDefault();
+      navigator.clipboard.writeText(getRoomUrl()).then(() => {
+        shareMsg.style.display = 'block';
+        setTimeout(() => { shareMsg.style.display = 'none'; }, 1200);
+      });
+    };
+    window.addEventListener('hashchange', updateShareUrl);
+  </script>
+</body>
+</html> 

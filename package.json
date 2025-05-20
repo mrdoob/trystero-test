@@ -1,0 +1,9 @@
+{
+  "name": "dune-sandbox-multiplayer",
+  "version": "1.0.0",
+  "description": "A simple multiplayer sandbox game using three.js and trystero.",
+  "main": "main.js",
+  "scripts": {
+    "start": "npx serve ."
+  }
+} 
