@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trystero Test Connection</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "trystero": "https://esm.run/trystero@0.21.3"
+      }
+    }
+  </script>
+  <style>
+    body { background: #222; color: #fff; font-family: sans-serif; padding: 2em; }
+    #log { background: #111; padding: 1em; border-radius: 8px; margin-top: 1em; font-size: 15px; }
+    #roomLink { color: #bada55; word-break: break-all; }
+    button { font-size: 16px; padding: 8px 16px; border-radius: 6px; border: none; background: #444; color: #fff; cursor: pointer; }
+    button:hover { background: #666; }
+  </style>
+</head>
+<body>
+  <h2>Trystero Connection Test</h2>
+  <button id="joinBtn">Create Room</button>
+  <div id="roomInfo" style="margin-top:1em; display:none;">
+    Room link: <a id="roomLink" href="#" target="_blank" rel="noopener"></a>
+  </div>
+  <div id="log"></div>
+  <button id="pingBtn" style="display:none; margin-top:10px;">Test Ping</button>
+  <script type="module">
+    import { joinRoom, selfId } from 'trystero';
+    const joinBtn = document.getElementById('joinBtn');
+    const roomInfo = document.getElementById('roomInfo');
+    const roomLink = document.getElementById('roomLink');
+    const logDiv = document.getElementById('log');
+    const pingBtn = document.getElementById('pingBtn');
+    let room = null;
+    let peerConnectedAt = null;
+    let roomId = null;
+    let pingStartTimes = {};
+    function log(msg) {
+      logDiv.innerHTML += msg + '<br>';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+    function getRoomId() {
+      if (window.location.hash.length > 1) return window.location.hash.slice(1);
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(16).slice(2);
+      window.location.hash = '#' + id;
+      return id;
+    }
+    function joinRoomAndLog() {
+      roomId = getRoomId();
+      const url = window.location.origin + window.location.pathname + '#' + roomId;
+      roomLink.textContent = url;
+      roomLink.href = url;
+      roomInfo.style.display = 'block';
+      joinBtn.disabled = true;
+      joinBtn.style.display = 'none';
+      pingBtn.style.display = 'inline-block';
+      pingBtn.disabled = false;
+      log('Joining room: ' + roomId);
+      const config = { appId: 'trystero-test-debug' };
+      room = joinRoom(config, roomId);
+      const start = performance.now();
+      room.onPeerJoin(peerId => {
+        const now = performance.now();
+        log('Peer joined: ' + peerId + ' (after ' + ((now - start) / 1000).toFixed(3) + 's)');
+        peerConnectedAt = now;
+      });
+      room.onPeerLeave(peerId => {
+        log('Peer left: ' + peerId);
+      });
+      // Ping-pong RTT logic
+      let [sendPing, getPing] = room.makeAction('ping');
+      let [sendPong, getPong] = room.makeAction('pong');
+      getPing((data, peerId) => {
+        // If not from self, reply with pong
+        if (peerId !== selfId) {
+          sendPong({ t: data.t, from: peerId, to: data.from });
+        }
+      });
+      getPong((data, peerId) => {
+        if (data.to === selfId && pingStartTimes[data.t]) {
+          const now = performance.now();
+          const rtt = now - pingStartTimes[data.t];
+          log('Pong received from ' + peerId + ' (RTT: ' + rtt.toFixed(1) + ' ms)');
+          delete pingStartTimes[data.t];
+        }
+      });
+      pingBtn.onclick = function() {
+        const t = performance.now();
+        pingStartTimes[t] = t;
+        sendPing({ t, from: selfId });
+        log('Ping sent...');
+      };
+      window.sendTestPing = pingBtn.onclick;
+      log('You are selfId: ' + selfId);
+      log('Open this link in another tab to connect.');
+      log('Once connected, click "Test Ping" or run sendTestPing() to test RTT.');
+    }
+    if (window.location.hash.length > 1) {
+      joinBtn.style.display = 'none';
+      joinRoomAndLog();
+    } else {
+      joinBtn.onclick = joinRoomAndLog;
+    }
+  </script>
+</body>
+</html> 
