@@ -27,6 +27,7 @@
   </div>
   <div id="log"></div>
   <button id="pingBtn" style="display:none; margin-top:10px;">Test Ping</button>
+  <div id="emojiBtns" style="display:none; margin-top:10px;"></div>
   <script type="module">
     import { joinRoom, selfId } from 'trystero';
     const joinBtn = document.getElementById('joinBtn');
@@ -34,6 +35,7 @@
     const roomLink = document.getElementById('roomLink');
     const logDiv = document.getElementById('log');
     const pingBtn = document.getElementById('pingBtn');
+    const emojiBtnsDiv = document.getElementById('emojiBtns');
     let room = null;
     let peerConnectedAt = null;
     let roomId = null;
@@ -85,6 +87,27 @@
           const rtt = now - pingStartTimes[data.t];
           log('Pong received from ' + peerId + ' (RTT: ' + rtt.toFixed(1) + ' ms)');
           delete pingStartTimes[data.t];
+        }
+      });
+      // Emoji logic
+      const emojis = ['😀','😂','😎','🤖','👾','🚀','🌵','🍕','🎲','🔥'];
+      let [sendEmoji, getEmoji] = room.makeAction('emoji');
+      emojiBtnsDiv.innerHTML = '';
+      emojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.textContent = emoji;
+        btn.style.fontSize = '22px';
+        btn.style.marginRight = '6px';
+        btn.onclick = () => {
+          sendEmoji({ emoji, from: selfId });
+          log('You sent: ' + emoji);
+        };
+        emojiBtnsDiv.appendChild(btn);
+      });
+      emojiBtnsDiv.style.display = 'block';
+      getEmoji((data, peerId) => {
+        if (peerId !== selfId) {
+          log('Received ' + data.emoji + ' from ' + peerId);
         }
       });
       pingBtn.onclick = function() {
